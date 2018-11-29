@@ -148,8 +148,9 @@ try
     end
    
 end
-    function out = varindex(m, n, p)
-        out = (m - 1) * Nodes + n + Nodes*Nodes*(p-1);  % Function given the variable index for each DV (i,j,k) [=(m,n,p)]  
+    function out = varindex(m, n, p, q)
+        out = 1 + (q-1) + (p-1) * Bays + (n-1) * Aircraft * Bays + (m-1) * Bays * Aircraft * Bays; 
+        %(m - 1) * Nodes + n + Nodes*Nodes*(p-1);  % Function given the variable index for each DV (i,j,k) [=(m,n,p)]  
               %column       %row   %parallel matrixes (k=1 & k=2)
     end
 end
