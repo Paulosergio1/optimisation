@@ -59,7 +59,7 @@ try
             end
         end
        
-        for i=1:slack
+        for i=1:
         lb                      =   zeros(DV, 1);                                 % Lower bounds
         ub                      =   ones(DV, 1);                                   % Upper bounds
         ctype                   =   char(ones(1, (DV)) * ('I'));                  % Variable types 'C'=continuous; 'I'=integer; 'B'=binary
