@@ -19,6 +19,8 @@ try
     Bays     =  3;
     time     =  8;
     slack    = Aircraft*Bays;
+    penalty_bay  = 1;
+    penalty_dom  = 1;
     
     Arrival_time        =   xlsread(filn,'Aircraft','B2:B62');
     Departure_time      =   xlsread(filn,'Aircraft','C2:C62');
@@ -40,7 +42,7 @@ try
         cplex.Model.sense       =   'minimize';
 
 %   Decision variables
-        DV                      = (Aircraft * Bays)^2+slack;
+        DV                      = (Aircraft * Bays)^2+slack+penalty_bay+penalty_dom;
     
     %%  Objective Function
         Value_obj=zeros(DV,1);
@@ -64,6 +66,13 @@ try
             NameDV (l,:)    = ['Slack' num2str(i,'%02d') '                            '];
             l=l+1;
         end
+        
+        NameDV(l,:) = ['Penalty_bay' num2str(i,'%02d') '                      '];
+        Value_obj (l,1) = [1000000];
+        l=l+1
+        NameDV(l,:) = ['Penalty_dom' num2str(i,'%02d') '                      '];
+        Value_obj (l,1) = [1000000000];
+        
         lb                      =   zeros(DV, 1);                                 % Lower bounds
         ub                      =   ones(DV, 1);                                   % Upper bounds
         ctype                   =   char(ones(1, (DV)) * ('I'));                  % Variable types 'C'=continuous; 'I'=integer; 'B'=binary
