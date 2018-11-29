@@ -20,17 +20,17 @@ try
     time     =  8;
     slack    = Aircraft*Bays;
     
-    Arrival_time        =   xlsread(filn,'Aircraft','B2:B11');
-    Departure_time      =   xlsread(filn,'Aircraft','C2:C11');
-    Size_ac             =   xlsread(filn,'Aircraft','D2:D11');
-    Domestic_ac         =   xlsread(filn,'Aircraft','E2:E11');
+    Arrival_time        =   xlsread(filn,'Aircraft','B2:B62');
+    Departure_time      =   xlsread(filn,'Aircraft','C2:C62');
+    Size_ac             =   xlsread(filn,'Aircraft','D2:D62');
+    Domestic_ac         =   xlsread(filn,'Aircraft','E2:E62');
     
-    Size_Bays           =   xlsread(filn,'Bays','C2:C11');
-    Domestic_Bays       =   xlsread(filn,'Bays','E2:E11');
+    Size_Bays           =   xlsread(filn,'Bays','C2:C45');
+    Domestic_Bays       =   xlsread(filn,'Bays','E2:E45');
     
-    connections     =   xlsread(filn,'Connections','C3:L12');
+    connections     =   xlsread(filn,'Connections','C3:BK63');
     
-    walking_time        =   xlsread(filn,'walking time','C4:L13');
+    walking_time        =   xlsread(filn,'walking time','C4:AT47');
     
     
     %%  Initiate CPLEX model
@@ -96,6 +96,24 @@ try
             end
             cplex.addRows(1,C_slack_bays,1,sprintf('Slack_Onebayperaircraft_ac_bay%d',i));
         end
+        
+        for i=1:Aircraft
+            for j=1:Bays
+                C_Same_bay_Arr_Dep=zeros(1,DV);
+                for k=1:Aircraft
+                    for l=1:Bays
+                        C_Same_bay_Arr_Dep(varindex(i,j,k,l))=1;
+                        C_Same_bay_Arr_Dep(varindex(k,l,i,j))=-1;
+                        if i==k && j==l
+                            C_Same_bay_Arr_Dep(varindex(i,j,k,l))=0;
+                        end
+                    end
+                end
+                cplex.addRows(0,C_Same_bay_Arr_Dep,0,sprintf('Same_bay_Arr_Dep%d_%d',i,j));
+            end
+        end
+        
+        cplex.writeModel([model '.lp']);
     
 %     %   Flow conservation at the nodes          
 %         for i = 1:Nodes
