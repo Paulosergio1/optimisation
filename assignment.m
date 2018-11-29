@@ -83,7 +83,7 @@ try
                         C_bays(varindex(i,j,k,l))=1;
                     end
                 end
-                %cplex.addRows(0,C_bays,
+                cplex.addRows(0,C_bays,0,sprintf('Onebayperaircraft_ac_bay%d_%d',i,j));
             end
         end
     
