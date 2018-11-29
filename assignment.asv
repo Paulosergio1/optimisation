@@ -40,7 +40,7 @@ try
         cplex.Model.sense       =   'minimize';
 
 %   Decision variables
-        DV                      = (Aircraft * Bays)^2;
+        DV                      = (Aircraft * Bays)^2+slack;
     
     %%  Objective Function
         Value_obj=zeros(DV,1);
@@ -58,8 +58,12 @@ try
                 end
             end
         end
-       
-        for i=1:
+        
+        for i =1:slack
+            %NameDV (l,:)    = ['Slack' num2str(i,'%02d')];
+            NameDV (l,:)    = ['Slack' num2str(i,'%02d') '                            '];
+            l=l+1;
+        end
         lb                      =   zeros(DV, 1);                                 % Lower bounds
         ub                      =   ones(DV, 1);                                   % Upper bounds
         ctype                   =   char(ones(1, (DV)) * ('I'));                  % Variable types 'C'=continuous; 'I'=integer; 'B'=binary
@@ -76,10 +80,10 @@ try
                 C_bays=zeros(1,Aircrafts*Bays);
                 for k=1:Aircraft
                     for l=1:Bays
-                        C_bays(varindex(i,j,k,l)=1;
+                        C_bays(varindex(i,j,k,l))=1;
                     end
                 end
-                cplex.addRows(0,C_bays,
+                cplex.addRows(0,C_bays,0,sprintf('Onebayperaircraft_ac_bay%d_%d',i,j)
             end
         end
     

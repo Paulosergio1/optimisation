@@ -82,7 +82,9 @@ Minimize
       + 0 X_(ac1)03,(bay1)03_(ac2)02_(bay2)03
       + 3844.5 X_(ac1)03,(bay1)03_(ac2)03_(bay2)01
       + 2920.5 X_(ac1)03,(bay1)03_(ac2)03_(bay2)02
-      + 1980 X_(ac1)03,(bay1)03_(ac2)03_(bay2)03
+      + 1980 X_(ac1)03,(bay1)03_(ac2)03_(bay2)03 + 0 Slack01 + 0 Slack02
+      + 0 Slack03 + 0 Slack04 + 0 Slack05 + 0 Slack06 + 0 Slack07 + 0 Slack08
+      + 0 Slack09
 Bounds
  0 <= X_(ac1)01,(bay1)01_(ac2)01_(bay2)01 <= 1
  0 <= X_(ac1)01,(bay1)01_(ac2)01_(bay2)02 <= 1
@@ -165,6 +167,15 @@ Bounds
  0 <= X_(ac1)03,(bay1)03_(ac2)03_(bay2)01 <= 1
  0 <= X_(ac1)03,(bay1)03_(ac2)03_(bay2)02 <= 1
  0 <= X_(ac1)03,(bay1)03_(ac2)03_(bay2)03 <= 1
+ 0 <= Slack01 <= 1
+ 0 <= Slack02 <= 1
+ 0 <= Slack03 <= 1
+ 0 <= Slack04 <= 1
+ 0 <= Slack05 <= 1
+ 0 <= Slack06 <= 1
+ 0 <= Slack07 <= 1
+ 0 <= Slack08 <= 1
+ 0 <= Slack09 <= 1
 Generals
  X_(ac1)01,(bay1)01_(ac2)01_(bay2)01  X_(ac1)01,(bay1)01_(ac2)01_(bay2)02 
  X_(ac1)01,(bay1)01_(ac2)01_(bay2)03  X_(ac1)01,(bay1)01_(ac2)02_(bay2)01 
@@ -206,5 +217,6 @@ Generals
  X_(ac1)03,(bay1)03_(ac2)01_(bay2)03  X_(ac1)03,(bay1)03_(ac2)02_(bay2)01 
  X_(ac1)03,(bay1)03_(ac2)02_(bay2)02  X_(ac1)03,(bay1)03_(ac2)02_(bay2)03 
  X_(ac1)03,(bay1)03_(ac2)03_(bay2)01  X_(ac1)03,(bay1)03_(ac2)03_(bay2)02 
- X_(ac1)03,(bay1)03_(ac2)03_(bay2)03 
+ X_(ac1)03,(bay1)03_(ac2)03_(bay2)03  Slack01  Slack02  Slack03  Slack04 
+ Slack05  Slack06  Slack07  Slack08  Slack09 
 End
