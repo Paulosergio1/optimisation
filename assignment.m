@@ -97,6 +97,19 @@ try
             cplex.addRows(1,C_slack_bays,1,sprintf('Slack_Onebayperaircraft_ac_bay%d',i));
         end
     
+      %one connection between two aircraft
+      for i=1:Aircraft
+          for j=1:Aircraft
+              C_connect_aircraft=zeros(1,DV);
+              for k=1:Bays
+                  for l=1:Bays
+                      C_connect_aircraft(varindex(i,k,j,l))=1;
+                  end
+              end
+              cplex.addRows(1,C_connect_aircraft,1,sprintf('Connection_between_aircraft%d_%d',i,j));
+          end
+      end
+      
 %     %   Flow conservation at the nodes          
 %         for i = 1:Nodes
 %             for k = 1:Classes
