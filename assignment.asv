@@ -77,15 +77,22 @@ try
         %One bay per A/C
         for i=1:Aircraft
             for j=1:Bays
-                C_bays=zeros(1,Aircrafts*Bays);
+                C_bays=zeros(1,DV);
                 for k=1:Aircraft
                     for l=1:Bays
                         C_bays(varindex(i,j,k,l))=1;
                     end
                 end
-                cplex.addRows(0,C_bays,0,sprintf('Onebayperaircraft_ac_bay%d_%d',i,j)
+                C_bays(varindexslack(i,j))=-Aircraft;
+                cplex.addRows(0,C_bays,0,sprintf('Onebayperaircraft_ac_bay%d_%d',i,j));
             end
         end
+        
+        % Slack variable one bay per aircraft
+        for i=1:Aircraft
+            C_slack_bays=zeros(1,Aircraft);
+            for j=1:Bays
+               C_slack_bays 
     
 %     %   Flow conservation at the nodes          
 %         for i = 1:Nodes
@@ -151,6 +158,10 @@ end
     function out = varindex(m, n, p)
         out = (m - 1) * Nodes + n + Nodes*Nodes*(p-1);  % Function given the variable index for each DV (i,j,k) [=(m,n,p)]  
               %column       %row   %parallel matrixes (k=1 & k=2)
+    end
+
+    function out = varindexslack(m, n)
+        out = (Aircraft * Bays)^2 + (m-1)*Aircraft +n ;
     end
 end
     
