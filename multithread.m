@@ -195,6 +195,22 @@ function Multicommodity ()
           end
       end
 
+      %arrival and departure time constraint
+      parfor i=1:Aircraft
+          for j=(i+1):Aircraft
+              if Arrival_time(j)<= Departure_time(i)
+                  for k=1:Bays
+                      C_time=zeros(1,DV);
+                      for z=1:Bays
+                          C_time(varindex(i,k,j,z,Bays,Aircraft))=1;
+                          C_time(varindex(j,k,i,z,Bays,Aircraft))=1;
+                      end
+                      cplex.addRows(0,C_time,1,sprintf('Conflicting_times_%d_%d_%d_%d',i,j,k,z));
+                  end
+              end
+          end
+      end
+      
 
 %     %   Flow conservation at the nodes          
 %         for i = 1:Nodes
