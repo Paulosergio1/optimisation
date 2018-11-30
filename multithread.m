@@ -14,8 +14,8 @@ function Multicommodity ()
 %   Select input file and sheet
     filn        =   [pwd '/Operations.xlsx'];
     
-    Aircraft =  61;
-    Bays     =  44;
+    Aircraft =  3;
+    Bays     =  3;
     time     =  8;
     slack    = Aircraft*Bays;
     penalty_bay  = 1;
@@ -47,10 +47,10 @@ function Multicommodity ()
         Value_obj=zeros(Aircraft, Bays, Aircraft, Bays);
         DV_obj = string(zeros(Aircraft, Bays, Aircraft, Bays));
         l=1;
-        parfor i =1:Aircraft
+        for i =1:Aircraft
             for j = 1:Bays
                 for k = 1:Aircraft                     % of the x_{ij}^k variables
-                    for m = 1:Bays
+                    parfor m = 1:Bays
                         NameDV (i, j, k, m)    = string(['X_(ac1)' num2str(i,'%02d') ',(bay1)' num2str(j,'%02d') '_(ac2)' num2str(k,'%02d') '_(bay2)' num2str(m,'%02d')]);
                         if Departure_time(k)>Arrival_time(i)
                             Value_obj(i,j,k,m) = (1+1/(Departure_time(k)-Arrival_time(i)))*connections(i,k)*walking_time(j,m);
@@ -93,39 +93,39 @@ function Multicommodity ()
         
     %%  Constraints
         %One bay per A/C
-        for i=1:Aircraft
+        parfor i=1:Aircraft
             for j=1:Bays
                 C_bays=zeros(1,DV);
                 for k=1:Aircraft
                     for l=1:Bays
-                        C_bays(varindex(i,j,k,l))=1;
+                        C_bays(varindex(i,j,k,l,Bays, Aircraft))=1;
                     end
                 end
-                C_bays(varindexslack(i,j))=-Aircraft;
+                C_bays(varindexslack(i,j,Bays, Aircraft))=-Aircraft;
                 cplex.addRows(0,C_bays,0,sprintf('Onebayperaircraft_ac_bay%d_%d',i,j));
             end
         end
         
         % Slack variable one bay per aircraft
-        for i=1:Aircraft
+        parfor i=1:Aircraft
             C_slack_bays=zeros(1,DV);
             for j=1:Bays
-               C_slack_bays(varindexslack(i,j))=1;
+               C_slack_bays(varindexslack(i,j,Bays, Aircraft))=1;
             end
             cplex.addRows(1,C_slack_bays,1,sprintf('Slack_Onebayperaircraft_ac_bay%d',i));
         end
         
         
         %Aircraft should depart from the same bay as it departed from
-        for i=1:Aircraft
+        parfor i=1:Aircraft
             for j=1:Bays
                 C_Same_bay_Arr_Dep=zeros(1,DV);
                 for k=1:Aircraft
                     for l=1:Bays
-                        C_Same_bay_Arr_Dep(varindex(i,j,k,l))=1;
-                        C_Same_bay_Arr_Dep(varindex(k,l,i,j))=-1;
+                        C_Same_bay_Arr_Dep(varindex(i,j,k,l,Bays, Aircraft))=1;
+                        C_Same_bay_Arr_Dep(varindex(k,l,i,j,Bays, Aircraft))=-1;
                         if i==k && j==l
-                            C_Same_bay_Arr_Dep(varindex(i,j,k,l))=0;
+                            C_Same_bay_Arr_Dep(varindex(i,j,k,l,Bays, Aircraft))=0;
                         end
                     end
                 end
@@ -136,12 +136,12 @@ function Multicommodity ()
         cplex.writeModel([model '.lp']);
     
       %one connection between two aircraft
-      for i=1:Aircraft
+      parfor i=1:Aircraft
           for j=1:Aircraft
               C_connect_aircraft=zeros(1,DV);
               for k=1:Bays
                   for l=1:Bays
-                      C_connect_aircraft(varindex(i,k,j,l))=1;
+                      C_connect_aircraft(varindex(i,k,j,l,Bays, Aircraft))=1;
                   end
               end
               cplex.addRows(1,C_connect_aircraft,1,sprintf('Connection_between_aircraft%d_%d',i,j));
@@ -150,12 +150,12 @@ function Multicommodity ()
       
       %The aircraft should not be parked at a bay which is to small,
       %otherwise there is a penalty value. 
-      for i=1:Aircraft
+      parfor i=1:Aircraft
+                      C_bay_size=zero
           for j=1:Aircraft
               for k=1:Bays
-                  for l=1:Bays
-                      C_bay_size=zeros(1,DV);
-                      C_bay_size(varindex(i,j,k,l))=1;
+                  for l=1:Bayss(1,DV);
+                      C_bay_size(varindex(i,j,k,l,Bays, Aircraft))=1;
                       C_bay_size(end-1)=-1;
                       if Size_Bays(j)<=Size_ac(i) && Size_Bays(l)<=Size_ac(k)
                           cplex.addRows(0,C_bay_size,1,sprintf('Bays_size%d_%d_%d_%d',i,j,k,l));
@@ -229,13 +229,13 @@ function Multicommodity ()
     end
    
 end
-    function out = varindex(m, n, p, q)
+    function out = varindex(m, n, p, q, Bays, Aircraft)
         out = 1 + (q-1) + (p-1) * Bays + (n-1) * Aircraft * Bays + (m-1) * Bays * Aircraft * Bays; 
         %(m - 1) * Nodes + n + Nodes*Nodes*(p-1);  % Function given the variable index for each DV (i,j,k) [=(m,n,p)]  
               %column       %row   %parallel matrixes (k=1 & k=2)
     end
 
-    function out = varindexslack(m, n)
+    function out = varindexslack(m, n, Bays, Aircraft)
         out = (Aircraft * Bays)^2 + (m-1)*Aircraft +n ;
     end
 

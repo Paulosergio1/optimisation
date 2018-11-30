@@ -69,7 +69,7 @@ try
         
         NameDV(l,:) = ['Penalty_bay' num2str(i,'%02d') '                      '];
         Value_obj (l,1) = [1000000];
-        l=l+1
+        l=l+1;
         NameDV(l,:) = ['Penalty_dom' num2str(i,'%02d') '                      '];
         Value_obj (l,1) = [1000000000];
         
@@ -106,6 +106,8 @@ try
             cplex.addRows(1,C_slack_bays,1,sprintf('Slack_Onebayperaircraft_ac_bay%d',i));
         end
         
+        
+        %Aircraft should depart from the same bay as it departed from
         for i=1:Aircraft
             for j=1:Bays
                 C_Same_bay_Arr_Dep=zeros(1,DV);
@@ -137,6 +139,26 @@ try
           end
       end
       
+      %The aircraft should not be parked at a bay which is to small,
+      %otherwise there is a penalty value. 
+      for i=1:Aircraft
+          for j=1:Aircraft
+              for k=1:Bays
+                  for l=1:Bays
+                      C_bay_size=zeros(1,DV);
+                      C_bay_size(varindex(i,j,k,l))=1;
+                      C_bay_size(end-1)=-1;
+                      if Size_Bays(j)<=Size_ac(i) && Size_Bays(l)<=Size_ac(k)
+                          cplex.addRows(0,C_bay_size,1,sprintf('Bays_size%d_%d_%d_%d',i,j,k,l));
+                      else
+                          cplex.addRows(0,C_bay_size,0,sprintf('Bays_size%d_%d_%d_%d',i,j,k,l));
+                      end
+                  end
+              end
+          end
+      end
+
+
 %     %   Flow conservation at the nodes          
 %         for i = 1:Nodes
 %             for k = 1:Classes
