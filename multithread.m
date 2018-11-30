@@ -14,9 +14,8 @@ function Multicommodity ()
 %   Select input file and sheet
     filn        =   [pwd '/Operations.xlsx'];
     
-    Aircraft =  3;
-    Bays     =  3;
-    time     =  8;
+    Aircraft =  5;
+    Bays     =  5;
     slack    = Aircraft*Bays;
     penalty_bay  = 1;
     penalty_dom  = 1;
@@ -248,30 +247,21 @@ function Multicommodity ()
     status                      =   cplex.Solution.status;
     if status == 101 || status == 102 || status == 105  %http://www.ibm.com/support/knowledgecenter/SSSA5P_12.6.0/ilog.odms.cplex.help/refcallablelibrary/macros/Solution_status_codes.html
         sol.profit      =   cplex.Solution.objval;
-        for k = 1:Classes
-            sol.Flow (:,:,k)   =   round(reshape(cplex.Solution.x(varindex(1,1,k):varindex(Nodes, Nodes, k)), Nodes, Nodes))';
-        end
-    end
-%   Write output
-    fprintf('\n-----------------------------------------------------------------\n');
-    fprintf ('Objective function value:          %10.1f  \n', sol.profit);
-    fprintf ('\n') 
-    fprintf ('Link     From     To    Flow_Y   Flow_J   Total  (  Cap)    Cost \n');
-    NL      =   0;
-    for i = 1:Nodes
-        for j = 1:Nodes
-            if Cost(i,j)<10000
-                NL      = NL + 1;
-                if sol.Flow(i,j,1)+sol.Flow(i,j,2)>0
-                    fprintf (' %2d \t  %s  \t  %s \t  %5d  %5d   %6d  (%5d)   %6d \n', NL, Airport{i}, ...
-                                Airport{j}, sol.Flow (i,j,1), sol.Flow (i,j,2), ...
-                                sol.Flow (i,j,1)+sol.Flow (i,j,2), Cap(i,j), ...
-                                Cost(i,j)*(sol.Flow (i,j,1)+sol.Flow (i,j,2)));
+        output          =   reshape(cplex.Solution.x(1:(Aircraft*Bays)^2),Aircraft*Bays,Aircraft*Bays);
+        xlswrite(filn,output,'Solutions')
+        Bay_positions=zeros(1,Aircraft);
+        ac_count=1;
+        for i=1:Bays
+            if sum(output(i,:))~=0
+                for j=1:Aircraft*Bays
+                    if output(i,j)~=0
+                        Bay_positions(1,ac_count)=j-(ac_count-1)*Bays;
+                        ac_count=ac_count+1;
+                    end
                 end
             end
-        end
+        end                    
     end
-   
 end
 function out = varindex(m, n, p, q, Bays, Aircraft)
     out = 1 + (q-1) + (p-1) * Bays + (n-1) * Aircraft * Bays + (m-1) * Bays * Aircraft * Bays; 
