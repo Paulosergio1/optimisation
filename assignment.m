@@ -10,7 +10,6 @@ function Multicommodity ()
     warning('off','MATLAB:lang:badlyScopedReturnValue')
     warning('off','MATLAB:xlswrite:NoCOMServer')
 
-try
     %%  Determine input
 %   Select input file and sheet
     filn        =   [pwd '/Operations.xlsx'];
@@ -71,7 +70,7 @@ try
         Value_obj (l,1) = [1000000];
         l=l+1;
         NameDV(l,:) = ['Penalty_dom' num2str(i,'%02d') '                      '];
-        Value_obj (l,1) = [1000000000];
+        Value_obj (l,1) = [10000000];
         
         lb                      =   zeros(DV, 1);                                 % Lower bounds
         ub                      =   ones(DV, 1);                                   % Upper bounds
@@ -89,10 +88,10 @@ try
                 C_bays=zeros(1,DV);
                 for k=1:Aircraft
                     for l=1:Bays
-                        C_bays(varindex(i,j,k,l))=1;
+                        C_bays(varindex(i,j,k,l, Bays, Aircraft))=1;
                     end
                 end
-                C_bays(varindexslack(i,j))=-Aircraft;
+                C_bays(varindexslack(i,j, Bays, Aircraft))=-Aircraft;
                 cplex.addRows(0,C_bays,0,sprintf('Onebayperaircraft_ac_bay%d_%d',i,j));
             end
         end
@@ -101,7 +100,7 @@ try
         for i=1:Aircraft
             C_slack_bays=zeros(1,DV);
             for j=1:Bays
-               C_slack_bays(varindexslack(i,j))=1;
+               C_slack_bays(varindexslack(i,j, Bays, Aircraft))=1;
             end
             cplex.addRows(1,C_slack_bays,1,sprintf('Slack_Onebayperaircraft_ac_bay%d',i));
         end
@@ -113,10 +112,10 @@ try
                 C_Same_bay_Arr_Dep=zeros(1,DV);
                 for k=1:Aircraft
                     for l=1:Bays
-                        C_Same_bay_Arr_Dep(varindex(i,j,k,l))=1;
-                        C_Same_bay_Arr_Dep(varindex(k,l,i,j))=-1;
+                        C_Same_bay_Arr_Dep(varindex(i,j,k,l, Bays, Aircraft))=1;
+                        C_Same_bay_Arr_Dep(varindex(k,l,i,j, Bays, Aircraft))=-1;
                         if i==k && j==l
-                            C_Same_bay_Arr_Dep(varindex(i,j,k,l))=0;
+                            C_Same_bay_Arr_Dep(varindex(i,j,k,l, Bays, Aircraft))=0;
                         end
                     end
                 end
@@ -132,7 +131,7 @@ try
               C_connect_aircraft=zeros(1,DV);
               for k=1:Bays
                   for l=1:Bays
-                      C_connect_aircraft(varindex(i,k,j,l))=1;
+                      C_connect_aircraft(varindex(i,k,j,l, Bays, Aircraft))=1;
                   end
               end
               cplex.addRows(1,C_connect_aircraft,1,sprintf('Connection_between_aircraft%d_%d',i,j));
@@ -142,21 +141,21 @@ try
       %The aircraft should not be parked at a bay which is to small,
       %otherwise there is a penalty value. 
       for i=1:Aircraft
-          for j=1:Aircraft
-              for k=1:Bays
-                  for l=1:Bays
-                      C_bay_size=zeros(1,DV);
-                      C_bay_size(varindex(i,j,k,l))=1;
-                      C_bay_size(end-1)=-1;
-                      if Size_Bays(j)<=Size_ac(i) && Size_Bays(l)<=Size_ac(k)
-                          cplex.addRows(0,C_bay_size,1,sprintf('Bays_size%d_%d_%d_%d',i,j,k,l));
-                      else
-                          cplex.addRows(0,C_bay_size,0,sprintf('Bays_size%d_%d_%d_%d',i,j,k,l));
-                      end
+          for j=1:Bays
+              C_bay_size=zeros(1,DV);
+              for k=1:Aircraft
+                  for y=1:Bays
+                      C_bay_size(varindex(i,j,k,y,Bays, Aircraft))=1;
                   end
+              end
+              C_bay_size(end-1)=-Aircraft;
+              if Size_Bays(j)>Size_ac(i)
+                  cplex.addRows(-Aircraft,C_bay_size,0,sprintf('Bays_size%d_%d_%d_%d',i,j,k,l));
               end
           end
       end
+      
+      
 
 
 %     %   Flow conservation at the nodes          
@@ -218,16 +217,15 @@ try
             end
         end
     end
-   
+end  
+function out = varindex(m, n, p, q, Bays, Aircraft)
+    out = 1 + (q-1) + (p-1) * Bays + (n-1) * Aircraft * Bays + (m-1) * Bays * Aircraft * Bays; 
+    %(m - 1) * Nodes + n + Nodes*Nodes*(p-1);  % Function given the variable index for each DV (i,j,k) [=(m,n,p)]  
+          %column       %row   %parallel matrixes (k=1 & k=2)
 end
-    function out = varindex(m, n, p, q)
-        out = 1 + (q-1) + (p-1) * Bays + (n-1) * Aircraft * Bays + (m-1) * Bays * Aircraft * Bays; 
-        %(m - 1) * Nodes + n + Nodes*Nodes*(p-1);  % Function given the variable index for each DV (i,j,k) [=(m,n,p)]  
-              %column       %row   %parallel matrixes (k=1 & k=2)
-    end
 
-    function out = varindexslack(m, n)
-        out = (Aircraft * Bays)^2 + (m-1)*Aircraft +n ;
-    end
+function out = varindexslack(m, n, Bays, Aircraft)
+    out = (Aircraft * Bays)^2 + (m-1)*Aircraft +n ;
 end
+
     
