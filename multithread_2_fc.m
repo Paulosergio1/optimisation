@@ -14,7 +14,7 @@ function Multicommodity ()
 %   Select input file and sheet
     filn        =   [pwd '/Operations.xlsx'];
     
-    Aircraft =  3;
+    Aircraft =  20;
     Bays     =  3;
     slack    = Aircraft*Bays;
     penalty_bay  = 1;
@@ -32,6 +32,22 @@ function Multicommodity ()
     
     walking_time        =   xlsread(filn,'walking time','C4:AT47');
     
+    compliance_arr_dep = zeros(Aircraft,Aircraft);
+    
+    for i=1:Aircraft
+        for j=1:Aircraft
+            if Arrival_time(i)<Arrival_time(j)
+                if Departure_time(i)>Arrival_time(j) && i~=j
+                    compliance_arr_dep(i,j)=1;
+                end
+            else
+                if Departure_time(j)>Arrival_time(i) && i~=j
+                    compliance_arr_dep(i,j)=1;
+                end
+            end
+        end
+    end
+     
     
     %%  Initiate CPLEX model
 %   Create model
@@ -214,8 +230,8 @@ function Multicommodity ()
 
         
      %%  Execute model
-        cplex.Param.mip.limits.nodes.Cur    = 1e+8;         %max number of nodes to be visited (kind of max iterations)
-        cplex.Param.timelimit.Cur           = 3600;         %max time in seconds
+        cplex.Param.mip.limits.nodes.Cur    = 1e+11;         %max number of nodes to be visited (kind of max iterations)
+        cplex.Param.timelimit.Cur           = 3600*8;         %max time in seconds
         
 %   Run CPLEX
         cplex.solve();
@@ -227,7 +243,7 @@ function Multicommodity ()
     if status == 101 || status == 102 || status == 105  %http://www.ibm.com/support/knowledgecenter/SSSA5P_12.6.0/ilog.odms.cplex.help/refcallablelibrary/macros/Solution_status_codes.html
         sol.profit      =   cplex.Solution.objval;
         output          =   reshape(cplex.Solution.x(1:(Aircraft*Bays)^2),Aircraft*Bays,Aircraft*Bays);
-        xlswrite(filn,output,'Solutions')
+        %xlswrite(filn,output,'Solutions')
         Bay_positions=zeros(1,Aircraft);
         ac_count=1;
         for i=1:Bays
@@ -250,8 +266,8 @@ function out = varindex(m, n, p, q, Bays, Aircraft)
           %column       %row   %parallel matrixes (k=1 & k=2)
 end
 
-function out = varindexslack(m, n, Bays, Aircraft)
-    out = (Aircraft * Bays)^2 + (m-1)*Aircraft +n ;
-end
+%function out = varindexslack(m, n, Bays, Aircraft)
+%    out = (Aircraft * Bays)^2 + (m-1)*Bays +n ;
+%end
 
     

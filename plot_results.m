@@ -1,5 +1,5 @@
 %CHANGE THE VALUE FOR BAYS
-number_bays=5;
+number_bays=2;
 Baynumbers=ones(1,number_bays);
 for i=1:number_bays
     Baynumbers(1,i)=i;
@@ -7,9 +7,9 @@ end
 
 
 filn        =   [pwd '/Operations.xlsx'];
-total_time  =   10;
+total_time  =   8;
 
-AC_bay           =   xlsread(filn,'Bay_postions','A1:E1');
+AC_bay           =   xlsread(filn,'Bay_postions','A1:BA1');
 Arrival_time        =   xlsread(filn,'Aircraft','B2:B62');
 Departure_time      =   xlsread(filn,'Aircraft','C2:C62');
 
@@ -36,7 +36,7 @@ for i=1:number_bays
     Data_matrix(i,end)=total_time-sum(Data_matrix(i,1:end-1));
 end
 
-for j=1:length(Name_matrix(1,:))
+for j=1:length(Name_matrix(:,1))
     for i=1:length(Name_matrix(j,:))
         if Name_matrix(j,i)=="0"
             Name_matrix(j,i)="";
@@ -54,13 +54,15 @@ for i=2:2:length(Data_matrix(1,:))
     plot(i).EdgeColor = 'black';
 end
 
-for i=1:length(Baynumbers)
-    for j=1:length(Data_matrix(1,:))
-        htext=text(j,i,Name_matrix(i,j));
+for i=1:length(Data_matrix(:,1))
+    for j=1:length(Data_matrix(1,2:end))
+        text_location=sum(Data_matrix(i,1:j))-0.5*Data_matrix(i,j);
+        text(text_location,i,Name_matrix(i,j),...
+  'HorizontalAlignment','center');
     end
 end
-set(htext,...  % Adjust properties
-                      'HorizontalAlignment','center')
 
+xlabel('time (hours)') 
+ylabel('Bay number') 
 
 
