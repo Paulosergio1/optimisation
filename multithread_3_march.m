@@ -151,11 +151,12 @@ function Multicommodity ()
         
         for i=1:Aircraft
             for k=1:Bays
-                C_timing=zeros(1,DV);
                 for j=1:Aircraft
+                    C_timing=zeros(1,DV);
                     C_timing(varindex_xij(j,k,Bays,Aircraft))=compliance_arr_dep(i,j);
+                    C_timing(varindex_xij(i,k,Bays,Aircraft))=compliance_arr_dep(i,j);
+                    cplex.addRows(0,C_timing,1,sprintf('Aircraft_timing_i%d_i%d_k%d',i,j,k));
                 end
-                cplex.addRows(0,C_timing,1,sprintf('Aircraft_timing_%d_%d',i,k));
             end
         end
         
