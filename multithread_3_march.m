@@ -14,8 +14,8 @@ function Multicommodity ()
 %   Select input file and sheet
     filn        =   [pwd '/Operations.xlsx'];
     
-    Aircraft =  5;
-    Bays     =  4;
+    Aircraft =  20;
+    Bays     =  10;
     penalty_bay  = 1;
     penalty_dom  = 1;
     
@@ -107,7 +107,7 @@ function Multicommodity ()
             end
         end
         
-        NameDV(l,1) = string(['Big_M_bay']);
+        NameDV(l,1) = string(['Big_M_size']);
         Value_obj (l,1) = 1000000;
         l=l+1;
         NameDV(l,:) = string(['Big_M_dom']);
@@ -138,6 +138,7 @@ function Multicommodity ()
             for j=1:Bays
                 C_bay_Size(varindex_xij(i,j,Bays,Aircraft))=compliance_size_bay(i,j);
             end
+            C_bay_Size(varindex_penalty(1, Bays, Aircraft))=-1;
             cplex.addRows(0,C_bay_Size,0,sprintf('Aircraft_bay_size_%d',i));
         end
         
@@ -146,6 +147,7 @@ function Multicommodity ()
             for j=1:Bays
                 C_Domestic(varindex_xij(i,j,Bays,Aircraft))=compliance_domestic_bay(i,j);
             end
+            C_Domestic(varindex_penalty(2, Bays, Aircraft))=-1;
             cplex.addRows(0,C_Domestic,0,sprintf('Aircraft_Domestic_%d',i));  
         end
         
@@ -217,7 +219,7 @@ function out = varindex_xij(m, n, Bays, Aircraft)
     out = (Aircraft * Bays)^2 + (m-1)*Bays +n ;
 end
 
-function out = varindex_penalty(index, Bays, Aicraft)
+function out = varindex_penalty(index, Bays, Aircraft)
     out = (Aircraft * Bays)^2 + Aircraft*Bays +index ;
 end
 

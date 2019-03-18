@@ -1,5 +1,5 @@
 %CHANGE THE VALUE FOR BAYS
-number_bays=2;
+number_bays=4;
 Baynumbers=ones(1,number_bays);
 for i=1:number_bays
     Baynumbers(1,i)=i;
@@ -7,7 +7,7 @@ end
 
 
 filn        =   [pwd '/Operations.xlsx'];
-total_time  =   8;
+total_time  =   5;
 
 AC_bay           =   xlsread(filn,'Bay_postions','A1:BA1');
 Arrival_time        =   xlsread(filn,'Aircraft','B2:B62');
